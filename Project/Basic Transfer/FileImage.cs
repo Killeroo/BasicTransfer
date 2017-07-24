@@ -15,7 +15,7 @@ namespace Basic_Transfer
         {
             // First check that file exists
             if (!System.IO.File.Exists(pathToFile))
-                Program.errorMsg("File cannot be found at location \"" + pathToFile + "\"");
+                Program.Error("File cannot be found at location \"" + pathToFile + "\"");
 
             // Get file attributes
             name = Path.GetFileName(pathToFile);
@@ -33,19 +33,19 @@ namespace Basic_Transfer
             }
             catch (DirectoryNotFoundException)
             {
-                Program.errorMsg("Cannot save file, \"" + path + "\" not found.");
+                Program.Error("Cannot save file, \"" + path + "\" not found.");
             }
             catch (IOException)
             {
-                Program.errorMsg("Cannot write file to device");
+                Program.Error("Cannot write file to device");
             }
             catch (UnauthorizedAccessException)
             {
-                Program.errorMsg("Access Denied. Can't write to directory");
+                Program.Error("Access Denied. Can't write to directory");
             }
             catch (Exception e)
             {
-                Program.errorMsg("Error occured creating file "  + "Error msg: " + e.InnerException + " " + e.Message);
+                Program.Error("Error occured creating file "  + "Error msg: " + e.InnerException + " " + e.Message);
             }
         }
 
