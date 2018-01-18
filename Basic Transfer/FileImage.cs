@@ -7,45 +7,45 @@ namespace Basic_Transfer
     class FileImage : IDisposable
     {
         // Attributes
-        public string name { get; set; }
-        public byte[] data { get; set; }
+        public string Name { get; set; }
+        public byte[] Data { get; set; }
 
         // Constructor
         public FileImage(string pathToFile)
         {
             // First check that file exists
             if (!System.IO.File.Exists(pathToFile))
-                Program.errorMsg("File cannot be found at location \"" + pathToFile + "\"");
+                Program.Error("File cannot be found at location \"" + pathToFile + "\"");
 
             // Get file attributes
-            name = Path.GetFileName(pathToFile);
-            data = File.ReadAllBytes(pathToFile); 
+            Name = Path.GetFileName(pathToFile);
+            Data = File.ReadAllBytes(pathToFile); 
         }
 
-        public void createFile(string path)
+        public void CreateFile(string path)
         {
             try
             {
                 // Create file at specified path
-                path = Path.Combine(path.Replace("\"", ""), name);
-                File.WriteAllBytes(path, data);
+                path = Path.Combine(path.Replace("\"", ""), Name);
+                File.WriteAllBytes(path, Data);
                 Console.WriteLine("file created at [{0}]", path);
             }
             catch (DirectoryNotFoundException)
             {
-                Program.errorMsg("Cannot save file, \"" + path + "\" not found.");
+                Program.Error("Cannot save file, \"" + path + "\" not found.");
             }
             catch (IOException)
             {
-                Program.errorMsg("Cannot write file to device");
+                Program.Error("Cannot write file to device");
             }
             catch (UnauthorizedAccessException)
             {
-                Program.errorMsg("Access Denied. Can't write to directory");
+                Program.Error("Access Denied. Can't write to directory");
             }
             catch (Exception e)
             {
-                Program.errorMsg("Error occured creating file "  + "Error msg: " + e.InnerException + " " + e.Message);
+                Program.Error("Error occured creating file "  + "Error msg: " + e.InnerException + " " + e.Message);
             }
         }
 
@@ -59,7 +59,7 @@ namespace Basic_Transfer
             {
 
                 // Set File data field to null
-                this.data = null;
+                this.Data = null;
 
                 // Call garbage collector to free up memory
                 System.GC.Collect();

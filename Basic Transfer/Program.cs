@@ -10,12 +10,9 @@ namespace Basic_Transfer
 {
     class Program
     {
-        // Seperate UI and data into seperate threads, access UI through deligates
-        // Multi thread file creation
-        // Multi thread file sending
-        // Implement dispose for FIleImage, remove GC call
-        // Could send filename in first 20 bytes of stream then use file stream to write directly to file but loops and handling of stream too compicated cba
+
         // Scan should not use classfull address, should instead specify the start and end address to scan EG 192.168.1.1-10 to scan hosts 1 to 10 on last octlet
+        // Or use CDN addresses
 
         static void Main(string[] args)
         {
@@ -26,26 +23,56 @@ namespace Basic_Transfer
                 Console.WriteLine("Not enough arguments.");
                 Console.WriteLine("Use either:");
                 Console.WriteLine("BasicTransfer.exe /send *FILE_PATH* *IP_ADDRESS*");
-                Console.WriteLine("BasicTransfer.exe /listen *TRANSFER_PATH*");
+                Console.WriteLine("BasicTransfer.exe /recieve *TRANSFER_PATH*");
 
                 return;
             }
 
             // model selection via first argument
             if (args[0] == "/recieve")
-                recieve(args[1]);
+                Recieve(args[1]);
             else if (args[0] == "/send")
-                send(args[1], args[2]);
+                Send(args[1], args[2]);
             else
             {
                 Console.WriteLine("Not enough arguments.");
                 Console.WriteLine("Use either:");
                 Console.WriteLine("BasicTransfer.exe /send *FILE_PATH* *IP_ADDRESS*");
-                Console.WriteLine("BasicTransfer.exe /listen *TRANSFER_PATH*");
+                Console.WriteLine("BasicTransfer.exe /recieve *TRANSFER_PATH*");
             }
+
+            // Drag and drop loop //
+            // Captured files that are dropped into the console
+            // NOTE: When a file is dragged and dropped into the console,
+            // the path to the file is inputted as a set of keyboard inputs.
+            // We capture the keyboard inputs when they are avaliable to get
+            // the dropped file's path.
+            bool running = true;
+            string path = "";
+            while (running)
+            {
+                // Read all characters while keys are being pressed
+                do
+                {
+                    ConsoleKeyInfo keyinfo = Console.ReadKey();
+                    path += keyinfo.KeyChar;
+                }
+                while (Console.KeyAvailable);
+
+                // Once we have captured some text
+                if (path != "")
+                {
+                    // Reset console
+                    Console.WriteLine();
+                    path = "";
+
+                    // Send(path, address);
+                }
+            }
+
         }
 
-        static void send(string pathToFile, string endAddress)
+        static void Send(string pathToFile, string endAddress)
         {
             // Create socket
             Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -65,11 +92,11 @@ namespace Basic_Transfer
             }
             catch (SocketException e)
             {
-                errorMsg("Socket Exception - " + e.Message);
+                Error("Socket Exception - " + e.Message);
             }
 
             // Serialise FileImage object onto the socket's network stream
-            Console.WriteLine("Transfering file [{0}]...", fi.name);
+            Console.WriteLine("Transfering file [{0}]...", fi.Name);
             NetworkStream objStream = serializeFileImage(fi, sock);
             Console.WriteLine("Transfer complete. ");
 
@@ -81,10 +108,10 @@ namespace Basic_Transfer
 
         }
 
-        static void recieve(string transferPath)
+        static void Recieve(string transferPath)
         {
             // Create listener for port 11000
-            TcpListener listener = new TcpListener(IPAddress.Parse(getLocalIPAddress()), 13450);
+            TcpListener listener = new TcpListener(IPAddress.Parse(GetLocalIPAddress()), 13450);
             listener.Start();
             Console.WriteLine("Listening on {0}...", listener.LocalEndpoint.ToString());
 
@@ -102,8 +129,8 @@ namespace Basic_Transfer
                         Console.WriteLine("Transfer complete.");
 
                         // Create transfered file
-                        Console.WriteLine("Creating \"" + fi.name + "\"...");
-                        fi.createFile(transferPath);
+                        Console.WriteLine("Creating \"" + fi.Name + "\"...");
+                        fi.CreateFile(transferPath);
                     }
                 }
             }
@@ -138,7 +165,50 @@ namespace Basic_Transfer
             return fi;
         }
 
-        static String getLocalIPAddress()
+        // Replace above functions with these:
+        /*
+          
+        /// <summary>
+        /// Conversion methods
+        /// </summary>
+        public static byte[] ToByteArray<T>(T obj)
+        {
+            if (obj == null)
+                return null;
+
+            BinaryFormatter bf = new BinaryFormatter();
+            using (MemoryStream ms = new MemoryStream())
+            {
+                bf.Serialize(ms, obj);
+                return ms.ToArray();
+            }
+        }
+        public static T FromByteArray<T>(byte[] data)
+        {
+            if (data == null)
+                return default(T);
+
+            BinaryFormatter bf = new BinaryFormatter();
+            using (MemoryStream ms = new MemoryStream(data))
+            {
+                object obj = bf.Deserialize(ms);
+                return (T)obj;
+            }
+        }
+        public static T FromMemoryStream<T>(MemoryStream ms)
+        {
+            if (ms == null)
+                return default(T);
+
+            BinaryFormatter bf = new BinaryFormatter();
+            ms.Seek(0, SeekOrigin.Begin);
+            Object obj = bf.Deserialize(ms);
+            ms.Close();
+            return (T)obj;
+        }
+        */
+
+        static String GetLocalIPAddress()
         {
             var host = Dns.GetHostEntry(Dns.GetHostName());
             foreach (var ip in host.AddressList)
@@ -147,7 +217,7 @@ namespace Basic_Transfer
             return "";
         }
 
-        public static void errorMsg(string message, bool exitFlag = true)
+        public static void Error(string message, bool exitFlag = true)
         {
             // Basic error message formatting
             Console.ForegroundColor = ConsoleColor.Red;
@@ -160,7 +230,6 @@ namespace Basic_Transfer
             if (exitFlag)
                 System.Environment.Exit(1);
         }
-
     }
 }
 
