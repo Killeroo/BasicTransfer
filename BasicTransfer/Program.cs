@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.ComponentModel;
+using System.IO;
 
 namespace Basic_Transfer
 {
@@ -30,16 +31,17 @@ namespace Basic_Transfer
 
             // model selection via first argument
             if (args[0] == "/recieve")
-                Recieve(args[1]);
-            else if (args[0] == "/send")
-                Send(args[1], args[2]);
+                Recieve(args[1], args[2]);
+            //else if (args[0] == "/send")
+                //Send(args[1], args[2]);
             else
             {
                 Console.WriteLine("Not enough arguments.");
                 Console.WriteLine("Use either:");
                 Console.WriteLine("BasicTransfer.exe /send *FILE_PATH* *IP_ADDRESS*");
-                Console.WriteLine("BasicTransfer.exe /recieve *TRANSFER_PATH*");
+                Console.WriteLine("BasicTransfer.exe /recieve *TRANSFER_PATH* HACK:*LOCAL ADDRESS*");
             }
+
 
             // Drag and drop loop //
             // Captured files that are dropped into the console
@@ -59,14 +61,15 @@ namespace Basic_Transfer
                 }
                 while (Console.KeyAvailable);
 
-                // Once we have captured some text
+
+                // Once we have captured some text, send file
+                Send(path.Trim('"'), args[2]);
+
+                // Reset onsole
                 if (path != "")
                 {
-                    // Reset console
                     Console.WriteLine();
                     path = "";
-
-                    // Send(path, address);
                 }
             }
 
@@ -97,7 +100,7 @@ namespace Basic_Transfer
 
             // Serialise FileImage object onto the socket's network stream
             Console.WriteLine("Transfering file [{0}]...", fi.Name);
-            NetworkStream objStream = serializeFileImage(fi, sock);
+            NetworkStream objStream = SerializeFileImage(fi, sock);
             Console.WriteLine("Transfer complete. ");
 
             // Clean up
@@ -108,10 +111,10 @@ namespace Basic_Transfer
 
         }
 
-        static void Recieve(string transferPath)
+        static void Recieve(string transferPath, string address)
         {
             // Create listener for port 11000
-            TcpListener listener = new TcpListener(IPAddress.Parse(GetLocalIPAddress()), 13450);
+            TcpListener listener = new TcpListener(IPAddress.Parse(address), 13450);
             listener.Start();
             Console.WriteLine("Listening on {0}...", listener.LocalEndpoint.ToString());
 
@@ -124,7 +127,7 @@ namespace Basic_Transfer
                 {
                     // Deserialise stream
                     Console.WriteLine("[{0}] connected, recieving file...", client.Client.RemoteEndPoint.ToString());
-                    using (FileImage fi = deserializeFileImage(stream))
+                    using (FileImage fi = DeserializeFileImage(stream))
                     {
                         Console.WriteLine("Transfer complete.");
 
@@ -136,7 +139,7 @@ namespace Basic_Transfer
             }
         }
 
-        static NetworkStream serializeFileImage(FileImage fi, Socket sock)
+        static NetworkStream SerializeFileImage(FileImage fi, Socket sock)
         {
             // Create a stream for storing our serialized object
             NetworkStream netStream = new NetworkStream(sock);
@@ -152,7 +155,7 @@ namespace Basic_Transfer
             return netStream;
         }
 
-        static FileImage deserializeFileImage(NetworkStream netStream)
+        static FileImage DeserializeFileImage(NetworkStream netStream)
         {
             // Deseralize our object from the stream
             IFormatter formatter = new BinaryFormatter();
@@ -164,49 +167,6 @@ namespace Basic_Transfer
             // Return the deserialized object
             return fi;
         }
-
-        // Replace above functions with these:
-        /*
-          
-        /// <summary>
-        /// Conversion methods
-        /// </summary>
-        public static byte[] ToByteArray<T>(T obj)
-        {
-            if (obj == null)
-                return null;
-
-            BinaryFormatter bf = new BinaryFormatter();
-            using (MemoryStream ms = new MemoryStream())
-            {
-                bf.Serialize(ms, obj);
-                return ms.ToArray();
-            }
-        }
-        public static T FromByteArray<T>(byte[] data)
-        {
-            if (data == null)
-                return default(T);
-
-            BinaryFormatter bf = new BinaryFormatter();
-            using (MemoryStream ms = new MemoryStream(data))
-            {
-                object obj = bf.Deserialize(ms);
-                return (T)obj;
-            }
-        }
-        public static T FromMemoryStream<T>(MemoryStream ms)
-        {
-            if (ms == null)
-                return default(T);
-
-            BinaryFormatter bf = new BinaryFormatter();
-            ms.Seek(0, SeekOrigin.Begin);
-            Object obj = bf.Deserialize(ms);
-            ms.Close();
-            return (T)obj;
-        }
-        */
 
         static String GetLocalIPAddress()
         {
@@ -232,5 +192,3 @@ namespace Basic_Transfer
         }
     }
 }
-
-// MessageBox.Show("use this in the final project");

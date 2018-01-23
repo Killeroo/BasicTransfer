@@ -7,8 +7,8 @@
     <ProjectGuid>{3660139D-B3B8-4B4A-A32D-39524A1C6D55}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Basic_Transfer</RootNamespace>
-    <AssemblyName>Basic Transfer</AssemblyName>
+    <RootNamespace>BasicTransfer</RootNamespace>
+    <AssemblyName>BasicTransfer</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
