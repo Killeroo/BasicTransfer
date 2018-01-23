@@ -17,14 +17,13 @@ namespace Basic_Transfer
 
         static void Main(string[] args)
         {
-
             // Basic arguments check
-            if (args.Length < 2)
+            if (args.Length < 2 || args.Length == 0 || args.Length == 1)
             {
                 Console.WriteLine("Not enough arguments.");
                 Console.WriteLine("Use either:");
-                Console.WriteLine("BasicTransfer.exe /send *FILE_PATH* *IP_ADDRESS*");
-                Console.WriteLine("BasicTransfer.exe /recieve *TRANSFER_PATH*");
+                Console.WriteLine("BasicTransfer.exe /send *IP_ADDRESS* OR *FILE_PATH* *IP_ADDRESS*");
+                Console.WriteLine("BasicTransfer.exe /recieve *TRANSFER_PATH* HACK:*LOCAL ADDRESS*");
 
                 return;
             }
@@ -32,35 +31,31 @@ namespace Basic_Transfer
             // model selection via first argument
             if (args[0] == "/recieve")
                 Recieve(args[1], args[2]);
-            //else if (args[0] == "/send")
-                //Send(args[1], args[2]);
-            else
-            {
-                Console.WriteLine("Not enough arguments.");
-                Console.WriteLine("Use either:");
-                Console.WriteLine("BasicTransfer.exe /send *FILE_PATH* *IP_ADDRESS*");
-                Console.WriteLine("BasicTransfer.exe /recieve *TRANSFER_PATH* HACK:*LOCAL ADDRESS*");
-            }
+            else if (args[0] == "/send" && args.Length == 3)
+                Send(args[1], args[2]);
 
-
-            // Drag and drop loop //
-            // Captured files that are dropped into the console
-            // NOTE: When a file is dragged and dropped into the console,
-            // the path to the file is inputted as a set of keyboard inputs.
-            // We capture the keyboard inputs when they are avaliable to get
-            // the dropped file's path.
-            bool running = true;
-            string path = "";
-            while (running)
+            // Drag and drop loop
+            // NOTE: We capture drap and drop files as a series of ReadKey events
+            Console.WriteLine("Drag and drop a file to send it...");
+            Console.WriteLine("Press Ctrl-C to end");
+            while (true)
             {
+                string path = "";
+
                 // Read all characters while keys are being pressed
-                do
+                try
                 {
-                    ConsoleKeyInfo keyinfo = Console.ReadKey();
-                    path += keyinfo.KeyChar;
+                    do
+                    {
+                        ConsoleKeyInfo keyinfo = Console.ReadKey();
+                        path += keyinfo.KeyChar;
+                    }
+                    while (Console.KeyAvailable);
                 }
-                while (Console.KeyAvailable);
-
+                catch (NotSupportedException)
+                {
+                    Error("Drag and drop not supported. Please use [BasicTransfer.exe /send *FILE_PATH* *IP_ADDRESS*] instead.");
+                }
 
                 // Once we have captured some text, send file
                 Send(path.Trim('"'), args[2]);
@@ -90,8 +85,10 @@ namespace Basic_Transfer
             try
             {
                 // Try to connect to end point
+                Console.WriteLine("Connecting to [{0}]...", ep.ToString());
+                LoadingSpinner.Start();
                 sock.Connect(ep);
-                Console.WriteLine("Connected to {0}", ep.ToString());
+                LoadingSpinner.Stop();
             }
             catch (SocketException e)
             {
@@ -99,8 +96,10 @@ namespace Basic_Transfer
             }
 
             // Serialise FileImage object onto the socket's network stream
-            Console.WriteLine("Transfering file [{0}]...", fi.Name);
+            Console.Write("Sending file [{0}]...", fi.Name);
+            LoadingSpinner.Start();
             NetworkStream objStream = SerializeFileImage(fi, sock);
+            LoadingSpinner.Stop();
             Console.WriteLine("Transfer complete. ");
 
             // Clean up
@@ -126,14 +125,18 @@ namespace Basic_Transfer
                 using (var stream = client.GetStream())
                 {
                     // Deserialise stream
-                    Console.WriteLine("[{0}] connected, recieving file...", client.Client.RemoteEndPoint.ToString());
+                    Console.WriteLine("[{0}] is sending a file, processing...", client.Client.RemoteEndPoint.ToString());
+                    LoadingSpinner.Start();
                     using (FileImage fi = DeserializeFileImage(stream))
                     {
+                        LoadingSpinner.Stop();
                         Console.WriteLine("Transfer complete.");
 
                         // Create transfered file
                         Console.WriteLine("Creating \"" + fi.Name + "\"...");
+                        LoadingSpinner.Start();
                         fi.CreateFile(transferPath);
+                        LoadingSpinner.Stop();
                     }
                 }
             }
@@ -184,7 +187,7 @@ namespace Basic_Transfer
             Console.Write("Error: ");
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.WriteLine(message);
-            Console.Read();
+            //Console.Read();
 
             // Terminate application if exit flag is set
             if (exitFlag)
