@@ -15,7 +15,7 @@ namespace Basic_Transfer
         {
             // First check that file exists
             if (!System.IO.File.Exists(pathToFile))
-                Program.Error("File cannot be found at location \"" + pathToFile + "\"");
+                Program.Error("File cannot be found at location \"" + pathToFile + "\"", false);
 
             // Get file attributes
             Name = Path.GetFileName(pathToFile);
@@ -28,24 +28,15 @@ namespace Basic_Transfer
             {
                 // Create file at specified path
                 path = Path.Combine(path.Replace("\"", ""), Name);
+                LoadingSpinner.Start();
                 File.WriteAllBytes(path, Data);
+                LoadingSpinner.Stop();
                 Console.WriteLine("file created at [{0}]", path);
-            }
-            catch (DirectoryNotFoundException)
-            {
-                Program.Error("Cannot save file, \"" + path + "\" not found.");
-            }
-            catch (IOException)
-            {
-                Program.Error("Cannot write file to device");
-            }
-            catch (UnauthorizedAccessException)
-            {
-                Program.Error("Access Denied. Can't write to directory");
             }
             catch (Exception e)
             {
-                Program.Error("Error occured creating file "  + "Error msg: " + e.InnerException + " " + e.Message);
+                LoadingSpinner.Stop();
+                Program.Error(e.GetType().ToString() + " - " + e.Message, false);
             }
         }
 

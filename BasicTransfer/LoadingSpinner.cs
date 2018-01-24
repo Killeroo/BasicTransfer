@@ -7,11 +7,14 @@ namespace Basic_Transfer
     {
         private static Thread thread;
         private static char[] cursor = new char[] { '-', '\\', '|', '/' };
-        private static int startx = 0;
+        private static int startX = 0;
+        private static bool cleanedUp = true; // Flag to check if we have already cleaned spinner
+
         public static void Start()
         {
             Console.CursorVisible = false;
-            startx = Console.CursorLeft;
+            cleanedUp = false;
+            startX = Console.CursorLeft;
 
             thread = new Thread(() =>
             {
@@ -36,13 +39,20 @@ namespace Basic_Transfer
 
         public static void Stop()
         {
-            // Stop drawing spinner and cleanup console
-            thread.Abort();
+            // Stop drawing spinner
+            try { thread.Abort(); }
+            catch (ThreadStateException) { } // Sliently ignore errors if thread has already been aborted
 
-            Console.CursorTop--;
-            Console.CursorLeft = startx;
-            Console.WriteLine(" ");
-            Console.CursorVisible = true;
+            // cleanup console
+            if (!cleanedUp)
+            {
+                Console.CursorTop--;
+                Console.CursorLeft = startX;
+                Console.WriteLine(" ");
+                Console.CursorVisible = true;
+
+                cleanedUp = true;
+            }
         }
     }
 }

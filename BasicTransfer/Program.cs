@@ -90,17 +90,29 @@ namespace Basic_Transfer
                 sock.Connect(ep);
                 LoadingSpinner.Stop();
             }
-            catch (SocketException e)
+            // I know these are pretty sweaping catches but we really don't
+            // need to handle specific exceptions we just need to keep going
+            catch (Exception e)
             {
-                Error("Socket Exception - " + e.Message);
+                // Incase we exceptioned before we could stop the spinner
+                LoadingSpinner.Stop();
+                Error(e.GetType().ToString() + "-" + e.Message);
             }
 
-            // Serialise FileImage object onto the socket's network stream
-            Console.Write("Sending file [{0}]...", fi.Name);
-            LoadingSpinner.Start();
-            NetworkStream objStream = SerializeFileImage(fi, sock);
-            LoadingSpinner.Stop();
-            Console.WriteLine("Transfer complete. ");
+            try
+            {
+                // Serialise FileImage object onto the socket's network stream
+                Console.Write("Sending file [{0}]...", fi.Name);
+                LoadingSpinner.Start();
+                NetworkStream objStream = SerializeFileImage(fi, sock);
+                LoadingSpinner.Stop();
+                Console.WriteLine("Transfer complete. ");
+            }
+            catch (Exception e)
+            {
+                LoadingSpinner.Stop();
+                Error(e.GetType().ToString() + "-" + e.Message, false);
+            }
 
             // Clean up
             Console.WriteLine("Closing connection...");
@@ -120,24 +132,28 @@ namespace Basic_Transfer
             // Connection loop
             while (true)
             {
-
-                using (var client = listener.AcceptTcpClient())
-                using (var stream = client.GetStream())
+                try
                 {
-                    // Deserialise stream
-                    Console.WriteLine("[{0}] is sending a file, processing...", client.Client.RemoteEndPoint.ToString());
-                    LoadingSpinner.Start();
-                    using (FileImage fi = DeserializeFileImage(stream))
+                    using (var client = listener.AcceptTcpClient())
+                    using (var stream = client.GetStream())
                     {
-                        LoadingSpinner.Stop();
-                        Console.WriteLine("Transfer complete.");
-
-                        // Create transfered file
-                        Console.WriteLine("Creating \"" + fi.Name + "\"...");
+                        // Deserialise stream
+                        Console.WriteLine("[{0}] is sending a file, processing...", client.Client.RemoteEndPoint.ToString());
                         LoadingSpinner.Start();
-                        fi.CreateFile(transferPath);
-                        LoadingSpinner.Stop();
+                        using (FileImage fi = DeserializeFileImage(stream))
+                        {
+                            LoadingSpinner.Stop();
+                            Console.WriteLine("Transfer complete.");
+
+                            // Create transfered file
+                            Console.Write("Creating \"" + fi.Name + "\"...");
+                            fi.CreateFile(transferPath);
+                        }
                     }
+                }
+                catch (Exception e)
+                {
+                    Error(e.GetType().ToString() + " - " + e.Message, false);
                 }
             }
         }
