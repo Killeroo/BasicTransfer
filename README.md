@@ -2,8 +2,7 @@
 
 [![](https://img.shields.io/badge/version-1.0-brightgreen.svg)]() ![](https://img.shields.io/maintenance/yes/2018.svg)
 
-Ping-like program that can send HTTP requests and color the results.
-
+Designed for small to mid sized file (1 to 500 mb)
 Download it here: [[Stable Releases]](https://github.com/Killeroo/Requester/releases)
 ***
 ![alt text](docs/screenshots/screenshot.png "PowerPing in action")
