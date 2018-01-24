@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Linq;
 using System.Threading;
 using System.ComponentModel;
 using System.IO;
@@ -22,7 +23,7 @@ namespace Basic_Transfer
             {
                 Console.WriteLine("Not enough arguments.");
                 Console.WriteLine("Use either:");
-                Console.WriteLine("BasicTransfer.exe /send *IP_ADDRESS* OR *FILE_PATH* *IP_ADDRESS*");
+                Console.WriteLine("BasicTransfer.exe /send *IP_ADDRESS* OR *IP_ADDRESS* *FILE_PATH*");
                 Console.WriteLine("BasicTransfer.exe /recieve *TRANSFER_PATH* HACK:*LOCAL ADDRESS*");
 
                 return;
@@ -51,14 +52,20 @@ namespace Basic_Transfer
                         path += keyinfo.KeyChar;
                     }
                     while (Console.KeyAvailable);
+                    Console.WriteLine();
                 }
                 catch (NotSupportedException)
                 {
                     Error("Drag and drop not supported. Please use [BasicTransfer.exe /send *FILE_PATH* *IP_ADDRESS*] instead.");
                 }
 
+                // Strip illegal characters from string
+                foreach (char c in Path.GetInvalidPathChars())
+                    path = path.Replace(c.ToString(), "");
+
                 // Once we have captured some text, send file
-                Send(path.Trim('"'), args[2]);
+                if (path != "") 
+                    Send(path.Trim('"'), args[1]);
 
                 // Reset onsole
                 if (path != "")
@@ -76,7 +83,18 @@ namespace Basic_Transfer
             Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             // Create image of file
-            FileImage fi = new FileImage(pathToFile);
+            FileImage fi = null;
+            try
+            { 
+                fi = new FileImage(pathToFile);
+            }
+            // I know these are pretty sweaping catches but we really don't
+            // need to handle specific exceptions we just need to keep going
+            catch (Exception e)
+            {
+                Error(e.GetType().ToString() + " - " + e.Message, false);
+                return;
+            }
 
             // Setup network endpoint
             IPAddress ip = IPAddress.Parse(endAddress);
@@ -85,18 +103,16 @@ namespace Basic_Transfer
             try
             {
                 // Try to connect to end point
-                Console.WriteLine("Connecting to [{0}]...", ep.ToString());
+                Console.Write("Connecting to [{0}]...", ep.ToString());
                 LoadingSpinner.Start();
                 sock.Connect(ep);
                 LoadingSpinner.Stop();
             }
-            // I know these are pretty sweaping catches but we really don't
-            // need to handle specific exceptions we just need to keep going
             catch (Exception e)
             {
                 // Incase we exceptioned before we could stop the spinner
                 LoadingSpinner.Stop();
-                Error(e.GetType().ToString() + "-" + e.Message);
+                Error(e.GetType().ToString() + " - " + e.Message);
             }
 
             try
@@ -111,14 +127,14 @@ namespace Basic_Transfer
             catch (Exception e)
             {
                 LoadingSpinner.Stop();
-                Error(e.GetType().ToString() + "-" + e.Message, false);
+                Error(e.GetType().ToString() + " - " + e.Message, false);
             }
 
             // Clean up
-            Console.WriteLine("Closing connection...");
             sock.Shutdown(SocketShutdown.Both);
             sock.Close();
             fi.Dispose();
+            Console.WriteLine("Connection closed.");
 
         }
 
@@ -138,7 +154,7 @@ namespace Basic_Transfer
                     using (var stream = client.GetStream())
                     {
                         // Deserialise stream
-                        Console.WriteLine("[{0}] is sending a file, processing...", client.Client.RemoteEndPoint.ToString());
+                        Console.Write("[{0}] is sending a file, processing...", client.Client.RemoteEndPoint.ToString().Split(':')[0]);
                         LoadingSpinner.Start();
                         using (FileImage fi = DeserializeFileImage(stream))
                         {

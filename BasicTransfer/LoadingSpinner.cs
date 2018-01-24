@@ -46,7 +46,6 @@ namespace Basic_Transfer
             // cleanup console
             if (!cleanedUp)
             {
-                Console.CursorTop--;
                 Console.CursorLeft = startX;
                 Console.WriteLine(" ");
                 Console.CursorVisible = true;

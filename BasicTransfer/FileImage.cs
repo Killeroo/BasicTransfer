@@ -13,10 +13,6 @@ namespace Basic_Transfer
         // Constructor
         public FileImage(string pathToFile)
         {
-            // First check that file exists
-            if (!System.IO.File.Exists(pathToFile))
-                Program.Error("File cannot be found at location \"" + pathToFile + "\"", false);
-
             // Get file attributes
             Name = Path.GetFileName(pathToFile);
             Data = File.ReadAllBytes(pathToFile); 
