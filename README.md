@@ -1,19 +1,15 @@
 # BasicTransfer
 
-[![](https://img.shields.io/badge/version-1.0-brightgreen.svg)]() ![](https://img.shields.io/maintenance/yes/2018.svg)
+![](https://img.shields.io/badge/version-0.8-brightyellow.svg)
 
 Designed for small to mid sized file (1 to 500 mb)
+
 Download it here: [[Stable Releases]](https://github.com/Killeroo/BasicTransfer/releases)
-***
-![alt text](docs/screenshots/screenshot.png "PowerPing in action")
 
+_**Work in progress. More coming soon...**_
 
-## Usage: 
-     
-               
+## Usage:      
 ## Arguments:
-
-     
 ## License
 
 Requester is licensed under the [MIT license](LICENSE).
