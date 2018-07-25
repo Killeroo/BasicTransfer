@@ -32,46 +32,42 @@ namespace Basic_Transfer
             // model selection via first argument
             if (args[0] == "/recieve")
                 Recieve(args[1], args[2]);
-            else if (args[0] == "/send" && args.Length == 3)
+            else if (args[0] == "/send" && args.Length == 2) {
                 Send(args[1], args[2]);
+                Environment.Exit(0);
+            } else if (args[0] == "/send" && args.Length == 3) {
+                // Drag and drop loop
+                // NOTE: We capture drap and drop files as a series of ReadKey events
+                Console.WriteLine("Drag and drop a file to send it...");
+                Console.WriteLine("Press Ctrl-C to end");
+                while (true) {
+                    string path = "";
 
-            // Drag and drop loop
-            // NOTE: We capture drap and drop files as a series of ReadKey events
-            Console.WriteLine("Drag and drop a file to send it...");
-            Console.WriteLine("Press Ctrl-C to end");
-            while (true)
-            {
-                string path = "";
-
-                // Read all characters while keys are being pressed
-                try
-                {
-                    do
-                    {
-                        ConsoleKeyInfo keyinfo = Console.ReadKey();
-                        path += keyinfo.KeyChar;
+                    // Read all characters while keys are being pressed
+                    try {
+                        do {
+                            ConsoleKeyInfo keyinfo = Console.ReadKey();
+                            path += keyinfo.KeyChar;
+                        }
+                        while (Console.KeyAvailable);
+                        Console.WriteLine();
+                    } catch (NotSupportedException) {
+                        Error("Drag and drop not supported. Please use [BasicTransfer.exe /send *FILE_PATH* *IP_ADDRESS*] instead.");
                     }
-                    while (Console.KeyAvailable);
-                    Console.WriteLine();
-                }
-                catch (NotSupportedException)
-                {
-                    Error("Drag and drop not supported. Please use [BasicTransfer.exe /send *FILE_PATH* *IP_ADDRESS*] instead.");
-                }
 
-                // Strip illegal characters from string
-                foreach (char c in Path.GetInvalidPathChars())
-                    path = path.Replace(c.ToString(), "");
+                    // Strip illegal characters from string
+                    foreach (char c in Path.GetInvalidPathChars())
+                        path = path.Replace(c.ToString(), "");
 
-                // Once we have captured some text, send file
-                if (path != "") 
-                    Send(path.Trim('"'), args[1]);
+                    // Once we have captured some text, send file
+                    if (path != "")
+                        Send(path.Trim('"'), args[1]);
 
-                // Reset onsole
-                if (path != "")
-                {
-                    Console.WriteLine();
-                    path = "";
+                    // Reset onsole
+                    if (path != "") {
+                        Console.WriteLine();
+                        path = "";
+                    }
                 }
             }
 
