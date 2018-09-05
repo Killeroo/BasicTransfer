@@ -9,7 +9,7 @@ Download it here: [[Stable Releases]](https://github.com/Killeroo/BasicTransfer/
 ## Usage:      
 
     /send *IP_ADDRESS* *FILE_TO_SEND*(optional)    Initiates file transfer with a given IP Address
-    /recieve *TRANSFER_PATH* *LOCAL ADDRESS*  Listens for an file being sent
+    /recieve *TRANSFER_PATH* *LOCAL ADDRESS*       Listens for an file being sent
 
 ## License
 
