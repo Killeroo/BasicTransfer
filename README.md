@@ -6,10 +6,11 @@ Designed for small to mid sized file (1 to 500 mb)
 
 Download it here: [[Stable Releases]](https://github.com/Killeroo/BasicTransfer/releases)
 
-_**Work in progress. More coming soon...**_
-
 ## Usage:      
-## Arguments:
+
+    /send *IP_ADDRESS* *FILE_TO_SEND*(optional)    Initiates file transfer with a given IP Address
+    /recieve *TRANSFER_PATH* *LOCAL ADDRESS*  Listens for an file being sent
+
 ## License
 
 Requester is licensed under the [MIT license](LICENSE).
